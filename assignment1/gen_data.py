@@ -11,7 +11,6 @@ def generate_label(percent=50):
 
 def generate_dataset(P, N):
     """
-
     :param P: Number of examples
     :param N: Number of dimensions for the feature
     :return: the random generated dataset
@@ -46,13 +45,18 @@ def RosenBlatt_algorithm(eps, S, N, weight):
     :return:
     """
 
-    E = weight * eps * S
-
+    E = np.dot(weight,eps) * S
+    new_weight = []
+    print(weight)
+    #print(eps)
+    #print(np.dot(weight,eps))
     for index,w in enumerate(weight):
-        if w * eps * S <= 0:
-            weight[index] = w + ((1/N)*eps *S)
-
-    return weight,E
+        if E <= 0:
+            temp = [w + (1/n)*e*S for e in eps]
+            new_weight.append(temp)
+        else:
+            new_weight.append(0)
+    return new_weight,E
 
 
 def seq_training(ID, P, n, N):
