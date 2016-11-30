@@ -4,7 +4,6 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 def generate_label(percent=50):
     return 1 if random.randrange(0, 100) > percent else -1
 
@@ -77,33 +76,38 @@ def seq_training(ID, P, n, N):
     return w, False
 
 
-
-def main():
+def plot_different_parameters():
     Qts = []
     N = 20 #Number of features
     nD = 50 #Number of generated dataset
     n = 20 #Number of epoch
 
     alphas = np.arange(0.75,3.25,0.25)
-    for alpha in alphas:
-        P = int(alpha*N) #Number of examples
-        
-        
-        succes_counter = 0.0
-        counter = 0.0
-        for i in range(2,nD):
-            ID = generate_dataset(P,N)
-            w,succes = seq_training(ID,P,n,N)
+    for N in [10,20,50,100,200]:
+        Qts = []
+        for alpha in alphas:
+            P = int(alpha*N) #Number of examples
+            
+            
+            succes_counter = 0.0
+            counter = 0.0
+            for i in range(2,nD):
+                ID = generate_dataset(P,N)
+                w,succes = seq_training(ID,P,n,N)
 
-            if (succes):
-                succes_counter += 1
-            counter += 1
-        print(float(succes_counter/counter))
-        Qts.append(float(succes_counter/counter))
+                if (succes):
+                    succes_counter += 1
+                counter += 1
+            print(float(succes_counter/counter))
+            Qts.append(float(succes_counter/counter))
 
 
-    plt.plot(alphas,Qts)
+        plt.plot(alphas,Qts,label=str(N) + " features")
+    plt.legend()
+    plt.ylabel('Succes rate')
+    plt.xlabel('alpha')
+    plt.title('Succes rate for different alphas and dimensions')
     plt.show()
 
 if __name__ == '__main__':
-    main()
+    plot_different_parameters()
