@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import random
 import numpy as np
 import matplotlib.pyplot as plt
@@ -74,29 +76,34 @@ def seq_training(ID, P, n, N):
     
     return w, False
 
-Qts = []
-N = 20 #Number of features
-nD = 50 #Number of generated dataset
-n = 20 #Number of epoch
-
-alphas = np.arange(0.75,3.25,0.25)
-for alpha in alphas:
-    P = int(alpha*N) #Number of examples
-    
-    
-    succes_counter = 0.0
-    counter = 0.0
-    for i in range(2,nD):
-        ID = generate_dataset(P,N)
-        w,succes = seq_training(ID,P,n,N)
-
-        if (succes):
-            succes_counter += 1
-        counter += 1
-    print(float(succes_counter/counter))
-    Qts.append(float(succes_counter/counter))
 
 
-plt.plot(alphas,Qts)
-plt.show()
+def main():
+    Qts = []
+    N = 20 #Number of features
+    nD = 50 #Number of generated dataset
+    n = 20 #Number of epoch
 
+    alphas = np.arange(0.75,3.25,0.25)
+    for alpha in alphas:
+        P = int(alpha*N) #Number of examples
+        
+        
+        succes_counter = 0.0
+        counter = 0.0
+        for i in range(2,nD):
+            ID = generate_dataset(P,N)
+            w,succes = seq_training(ID,P,n,N)
+
+            if (succes):
+                succes_counter += 1
+            counter += 1
+        print(float(succes_counter/counter))
+        Qts.append(float(succes_counter/counter))
+
+
+    plt.plot(alphas,Qts)
+    plt.show()
+
+if __name__ == '__main__':
+    main()
