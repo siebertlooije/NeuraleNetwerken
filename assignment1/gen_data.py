@@ -25,9 +25,9 @@ def generate_dataset(P, N):
     return ID
 
 
-def check_E(E):
+def check_E(E, c):
     for i in range(0,len(E)):
-        if(E[i] <= 0):
+        if(E[i] <= c):
             return False
     return True
 
@@ -57,18 +57,52 @@ def RosenBlatt_algorithm(example, N, weight):
     return new_weight,E
 
 
-def seq_training(ID, P, n, N):
+
+def plot_c():
+    Qts = []
+    N = 20 #Number of features
+    nD = 50 #Number of generated dataset
+    n = 100 #Number of epoch
+    alphas = np.arange(0.75,3.25,0.25)
+    for c in [-0.1,-0.05,0,0.05,0.1]:
+        Qts = []
+        for alpha in alphas:
+            P = int(alpha*N) #Number of examples
+            
+            succes_counter = 0.0
+            counter = 0.0
+            for i in range(2,nD):
+                ID = generate_dataset(P,N)
+                w,succes = seq_training(ID,P,n,N,c)
+
+                if (succes):
+                    succes_counter += 1
+                counter += 1
+            print(float(succes_counter/counter))
+            Qts.append(float(succes_counter/counter))
+
+
+        plt.plot(alphas,Qts,label=str(c)+" C")
+    plt.xlabel('Alpha')
+    plt.ylabel('Succes rate')
+    axes = plt.gca()
+    axes.set_ylim([-0.2,1.2])
+    plt.legend()
+    plt.show()
+
+def seq_training(ID, P, n, N, c):
     """
     :param ID: the dataset
     :param P: the number of examples
     :param n: the number of epoches
     :return:
     """
+
     E = np.zeros(P)
     w = np.zeros(N)
     for epoch in range(0,n):
         for example in range(0,P):
-            if(check_E(E)):
+            if(check_E(E,c)):
                 return w, True
 
             w,E[example] = RosenBlatt_algorithm(ID[example],N,w)
@@ -108,6 +142,9 @@ def plot_different_parameters():
     plt.xlabel('alpha')
     plt.title('Succes rate for different alphas and dimensions')
     plt.show()
+
+def main():
+    plot_c()
 
 if __name__ == '__main__':
     plot_different_parameters()
