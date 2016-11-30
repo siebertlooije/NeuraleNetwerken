@@ -1,11 +1,7 @@
 import random
 import numpy as np
+import matplotlib.pyplot as plt
 
-alpha = 1.00
-N = 20 #Number of features
-P = int(alpha*N) #Number of examples
-nD = 50 #Number of generated dataset
-n = 100 #Number of epoch
 
 def generate_label(percent=50):
     return 1 if random.randrange(0, 100) > percent else -1
@@ -35,7 +31,10 @@ def check_E(E):
     return True
 
 #E = w * eps * S
-def RosenBlatt_algorithm(eps, S, N, weight):
+
+def RosenBlatt_algorithm(example, N, weight):
+    
+
     """
     :param eps:
     :param S:
@@ -43,14 +42,17 @@ def RosenBlatt_algorithm(eps, S, N, weight):
     :param w:
     :return:
     """
-    E = np.dot(weight,eps) * S
+
+    #E = np.dot(weight,example[0]) * example[1]
+
     new_weight = []
-    for index,w in enumerate(weight):
-        if E <= 0:
-            temp = w + (1/n)*eps[index]*S
-            new_weight.append(temp)
-        else:
-            new_weight.append(w)
+
+    E = np.dot(weight,example[0]) * example[1]
+    if E <= 0:
+        temp = [(1/N) * ex * example[1] for ex in example[0]]
+        new_weight = weight + temp
+    else:
+        new_weight = weight
     return new_weight,E
 
 
@@ -61,26 +63,40 @@ def seq_training(ID, P, n, N):
     :param n: the number of epoches
     :return:
     """
+    E = np.zeros(P)
     w = np.zeros(N)
-    E = np.zeros(N)
-    for epoch in range(0,n * P):
+    for epoch in range(0,n):
+        for example in range(0,P):
+            if(check_E(E)):
+                return w, True
 
-        if(check_E(E)):
-            return w,E, True
+            w,E[example] = RosenBlatt_algorithm(ID[example],N,w)
+    
+    return w, False
 
-        index =  epoch % P
-        w,E[index] = RosenBlatt_algorithm(ID[index][0],ID[index][1],N,w)
+Qts = []
+N = 20 #Number of features
+nD = 50 #Number of generated dataset
+n = 20 #Number of epoch
 
-    return w,E, False
+alphas = np.arange(0.75,3.25,0.25)
+for alpha in alphas:
+    P = int(alpha*N) #Number of examples
+    
+    
+    succes_counter = 0.0
+    counter = 0.0
+    for i in range(2,nD):
+        ID = generate_dataset(P,N)
+        w,succes = seq_training(ID,P,n,N)
 
-succes_counter = 0.0
-counter = 0.0
-for i in range(2,nD):
-    ID = generate_dataset(P,N)
-    w,E,succes = seq_training(ID,P,n,N)
-    if (succes):
-        succes_counter += 1
-    counter += 1
+        if (succes):
+            succes_counter += 1
+        counter += 1
+    print(float(succes_counter/counter))
+    Qts.append(float(succes_counter/counter))
 
-Qts = float(succes_counter / counter)
-print(Qts)
+
+plt.plot(alphas,Qts)
+plt.show()
+
