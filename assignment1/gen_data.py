@@ -114,7 +114,7 @@ def plot_different_parameters():
     Qts = []
     N = 20 #Number of features
     nD = 50 #Number of generated dataset
-    n = 20 #Number of epoch
+    n = 100 #Number of epoch
 
     alphas = np.arange(0.75,3.25,0.25)
     for N in [10,20,50,100,200]:
