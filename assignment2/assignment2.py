@@ -4,17 +4,16 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-def generate_eps():
-	eps = []
+def generate_eps(N):
+    eps = []
     for j in range(0,N):
         eps.append(random.gauss(0,1))
     return eps
 
-def generate_label(percent=50):
-	eps = generate_eps()
-	w_start = np.ones()
-	return np.sign(np.dot(w_start, eps))
-   
+def generate_label(N):
+    eps = generate_eps(N)
+    w_start = np.ones(N)
+    return np.sign(np.dot(w_start, eps))
 
 def generate_dataset(P, N):
     """
@@ -29,7 +28,7 @@ def generate_dataset(P, N):
         for j in range(0,N):
             eps.append(random.gauss(0,1))
 
-        S = generate_label()
+        S = generate_label(N)
         ID.append([eps,S])
     return ID
 
