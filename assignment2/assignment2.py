@@ -3,6 +3,8 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import math
+
 
 def generate_eps(N):
     eps = []
@@ -41,7 +43,7 @@ def check_E(E, c):
 
 #E = w * eps * S
 
-def Minover_algorithm(example, N, weight):
+def Minover_algorithm(examples, N, weight):
     
 
     """
@@ -51,18 +53,46 @@ def Minover_algorithm(example, N, weight):
     :param w:
     :return:
     """
-
     new_weight = []
+    index_k = 0
+    high_k = 999
+    for index,example in enumerate(examples):
+        if (np.any(weight)):
+            K = (np.dot(weight,example[0]) * example[1]) / np.linalg.norm(weight)
+        else:
+            K = 0
+        
+        if high_k > K:
+            high_k= K
+            index_k = index
+    print(index_k)
+    print(examples[index_k])
 
-    K = np.dot(weight,example[0])
+    temp = [(1/N) * ex * examples[index_k][1] for ex in examples[index_k][0]]
+    new_weight = weight + temp
 
-    E = np.dot(weight,example[0]) * example[1]
-    if E <= 0:
-        temp = [(1/N) * ex * example[1] for ex in example[0]]
-        new_weight = weight + temp
-    else:
-        new_weight = weight
-    return new_weight,E
+    return new_weight
+
+
+
+
+def seq_training(ID, P, n, N):
+    """
+    :param ID: the dataset
+    :param P: the number of examples
+    :param n: the number of epoches
+    :return:
+    """
+
+    control_w = np.zeros((P,N))
+    w = np.zeros(N)
+    for epoch in range(0,n):        
+        w = Minover_algorithm(ID,N,w)
+        control_w = control_w[:-1]
+        control_w =  np.append(control_w,w)
+        if(not np.any(np.std(control_w, axis=0))):
+            return w, True
+    return w, False
 
 
 
@@ -98,25 +128,10 @@ def plot_c():
     plt.legend()
     plt.show()
 
-def seq_training(ID, P, n, N, c):
-    """
-    :param ID: the dataset
-    :param P: the number of examples
-    :param n: the number of epoches
-    :return:
-    """
 
-    E = np.zeros(P)
-    w = np.zeros(N)
-    for epoch in range(0,n):
-        for example in range(0,P):
-            if(check_E(E,c)):
-                return w, True
 
-            w,E[example] = RosenBlatt_algorithm(ID[example],N,w)
-    
-    return w, False
-
+def calculate_gen_error(weight, N):
+    return(1/math.pi) * (math.acos(np.dot(w_start,weight) / (np.linalg.norm(w_start) * np.linalg.norm(weight))))
 
 def plot_different_parameters():
     Qts = []
@@ -155,7 +170,18 @@ def main():
     plot_c()
 
 if __name__ == '__main__':
-    plot_different_parameters()
+
+    N = 20 #Number of features
+    alpha = 0.75 
+    P = int(alpha*N) #Number of examples
+    nD = 50 #Number of generated dataset
+    n = P * N #Number of epoch
+
+    ID = generate_dataset(P,N)
+    w,succes = seq_training(ID,P,n,N)
+    print("w : {}".format(w))
+    print("succes : {}".format(succes))
+    #plot_different_parameters()
 
 
 
