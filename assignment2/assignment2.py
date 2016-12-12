@@ -65,15 +65,11 @@ def Minover_algorithm(examples, N, weight):
         if high_k > K:
             high_k= K
             index_k = index
-    print(index_k)
-    print(examples[index_k])
 
     temp = [(1/N) * ex * examples[index_k][1] for ex in examples[index_k][0]]
     new_weight = weight + temp
 
     return new_weight
-
-
 
 
 def seq_training(ID, P, n, N):
@@ -83,104 +79,52 @@ def seq_training(ID, P, n, N):
     :param n: the number of epoches
     :return:
     """
-
-    control_w = np.zeros((P,N))
+    control_w = np.zeros(P)
     w = np.zeros(N)
     for epoch in range(0,n):        
         w = Minover_algorithm(ID,N,w)
-        control_w = control_w[:-1]
-        control_w =  np.append(control_w,w)
-        if(not np.any(np.std(control_w, axis=0))):
-            return w, True
+        control_w = np.roll(control_w,1) #TODO: From here until line 90 something is not yet right.
+        control_w = list(control_w[:-1])
+        control_w.append(np.std(w))
+        if(np.std(control_w) == 0): 
+            return w,True
     return w, False
 
 
-
-def plot_c():
-    Qts = []
-    N = 20 #Number of features
-    nD = 50 #Number of generated dataset
-    n = 100 #Number of epoch
-    alphas = np.arange(0.75,3.25,0.25)
-    for c in [-0.1,-0.05,0,0.05,0.1]:
-        Qts = []
-        for alpha in alphas:
-            P = int(alpha*N) #Number of examples
-            
-            succes_counter = 0.0
-            counter = 0.0
-            for i in range(2,nD):
-                ID = generate_dataset(P,N)
-                w,succes = seq_training(ID,P,n,N,c)
-
-                if (succes):
-                    succes_counter += 1
-                counter += 1
-            print(float(succes_counter/counter))
-            Qts.append(float(succes_counter/counter))
-
-
-        plt.plot(alphas,Qts,label=str(c)+" C")
-    plt.xlabel('Alpha')
-    plt.ylabel('Succes rate')
-    axes = plt.gca()
-    axes.set_ylim([-0.2,1.2])
-    plt.legend()
-    plt.show()
-
-
-
-def calculate_gen_error(weight, N):
+def calculate_gen_error(weight,N):
+    w_start = np.ones(N)
     return(1/math.pi) * (math.acos(np.dot(w_start,weight) / (np.linalg.norm(w_start) * np.linalg.norm(weight))))
 
 def plot_different_parameters():
-    Qts = []
+
     N = 20 #Number of features
     nD = 50 #Number of generated dataset
-    n = 20 #Number of epoch
-
-    alphas = np.arange(0.75,3.25,0.25)
-    for N in [10,20,50,100,200]:
-        Qts = []
-        for alpha in alphas:
-            P = int(alpha*N) #Number of examples
-            
-            
-            succes_counter = 0.0
-            counter = 0.0
-            for i in range(2,nD):
-                ID = generate_dataset(P,N)
-                w,succes = seq_training(ID,P,n,N)
-
-                if (succes):
-                    succes_counter += 1
-                counter += 1
-            print(float(succes_counter/counter))
-            Qts.append(float(succes_counter/counter))
-
-
-        plt.plot(alphas,Qts,label=str(N) + " features")
+    
+    average_error = []
+    alphas = np.arange(0.25,3.25,0.25)
+    # for N in [10,20,50,100,200]:
+    for alpha in alphas:
+        P = int(alpha*N) #Number of examples
+        n = P * N #Number of epoch
+        errors = []
+        for i in range(2,nD):
+            ID = generate_dataset(P,N)
+            w,succes = seq_training(ID,P,n,N)
+            errors.append(calculate_gen_error(w,N))
+        average_error.append(np.mean(errors))
+        print("ALPHA :{}, SUCCES :{}".format(alpha,succes))
+    plt.plot(alphas,average_error,label=str(N) + " features")
     plt.legend()
-    plt.ylabel('Succes rate')
+    plt.ylabel('Generalization error')
     plt.xlabel('alpha')
-    plt.title('Succes rate for different alphas and dimensions')
+    plt.title('Generalization error for different alphas and dimensions')
     plt.show()
 
 def main():
     plot_c()
 
 if __name__ == '__main__':
-
-    N = 20 #Number of features
-    alpha = 0.75 
-    P = int(alpha*N) #Number of examples
-    nD = 50 #Number of generated dataset
-    n = P * N #Number of epoch
-
-    ID = generate_dataset(P,N)
-    w,succes = seq_training(ID,P,n,N)
-    print("w : {}".format(w))
-    print("succes : {}".format(succes))
+    plot_different_parameters()
     #plot_different_parameters()
 
 
