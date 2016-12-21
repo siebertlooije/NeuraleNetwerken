@@ -3,7 +3,6 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-import scipy.io
 
 def generate_label(percent=50):
     return 1 if random.randrange(0, 100) > percent else -1
