@@ -25,6 +25,9 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
+def add_noise(lambda_perc=0.5):
+    return 1 if random.randrange(0, 100) > lambda_perc else -1
+
 
 def generate_eps(N):
     eps = []
@@ -32,10 +35,10 @@ def generate_eps(N):
         eps.append(random.gauss(0,1))
     return eps
 
-def generate_label(N):
-    eps = generate_eps(N)
+def generate_label(eps,N, noise=False, lambda_perc=0.5):
     w_start = np.ones(N)
-    return np.sign(np.dot(w_start, eps))
+    added_noise = 1 if (noise == False) else add_noise(lambda_perc=lambda_perc)
+    return (added_noise * np.sign(np.dot(w_start, eps)))
 
 def generate_dataset(P, N):
     """
@@ -49,8 +52,7 @@ def generate_dataset(P, N):
         eps = []
         for j in range(0,N):
             eps.append(random.gauss(0,1))
-
-        S = generate_label(N)
+        S = generate_label(eps,N)
         ID.append([eps,S])
     return ID
 
@@ -129,11 +131,12 @@ def calculate_gen_error(weight,N):
 def plot_different_parameters():
 
     N = 20 #Number of features
-    nD = 50 #Number of generated dataset
+    nD = 20 #Number of generated dataset
     
     
-    alphas = np.arange(0.25,3,0.25)
-    for criterionAngle in np.arange(0.01,0.35,0.08):
+    alphas = np.arange(0.25,5.0,0.25)
+
+    for criterionAngle in np.arange(0.01,1,0.1):
         average_error = []
         for alpha in alphas:
             P = int(alpha*N) #Number of examples
@@ -145,12 +148,12 @@ def plot_different_parameters():
                 errors.append(calculate_gen_error(w,N))
             average_error.append(np.mean(errors))
             print("ALPHA :{}, SUCCES :{}, ERROR :{}".format(alpha,succes, np.mean(errors)))
-        plt.plot(alphas,average_error,label=str(criterionAngle) + " critangle")
-    plt.legend()
+        plt.plot(alphas,average_error,label=str(np.degrees(criterionAngle)) + " thres angle")
+    plt.legend(loc=2,prop={'size':6})
     plt.ylabel('Generalization error')
     plt.xlabel('alpha')
     plt.title('Generalization error for different alphas and dimensions')
-    plt.show()
+    plt.savefig("Plot different crit angles")
 
 
 if __name__ == '__main__':
