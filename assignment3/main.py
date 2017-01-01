@@ -27,11 +27,63 @@ def generate_dataset(P, N):
     return ID
 
 
+def load_dataset():
+    mat = scipy.io.loadmat('data3.mat')
+    xi = np.transpose(mat['xi'])
+    tau = mat['tau']
+    return (xi, tau)
+
+
 def check_E(E, c):
     for i in range(0, len(E)):
         if (E[i] <= c):
             return False
     return True
+
+
+def Feed_forward(w1,w2,eps):
+    return (np.tanh(np.dot(w1,eps)) + np.tanh(np.dot(w2,eps)))
+
+
+#e = ((feedforward() - label)^2)/2
+#w = w - learning_step * gradient(e)
+def calculate_weights(w1,w2, IDs, example, learning_step):
+    e = ((Feed_forward(w1,w2,example) - IDs[example])^2)*0.5
+    w1_new = w1 - learning_step * np.gradient(w1)*e
+    w2_new = w2 - learning_step * np.gradient(w2)*e
+    return w1_new,w2_new
+
+
+#E = 1/p * 1/2 for all examples do : (feed_forward(eps ) - label(eps))^2
+def sto_gradient_descent(w1,w2,examples, IDs):
+    sum_grad = 0
+    for example in examples:
+        sum_grad += (Feed_forward(w1,w2,example) - IDs(example))^2
+
+    #0.5/len(examples) = (1/2)*(1/len(examples)
+    final_grad = 0.5/len(examples)*sum_grad
+    return final_grad
+
+
+def select_random_example(len_examples):
+    return np.random.randint(len_examples, size = 1)[0]
+
+
+def seq_training(ID, P, n, N, c):
+    """
+    :param ID: the dataset
+    :param P: the number of examples
+    :param n: the number of epoches
+    :return:
+    """
+    w1 = np.random.uniform(N)
+    w2 = np.random.uniform(N)
+    cost_function = 0
+    for epoch in range(0, n):
+        cost_function = sto_gradient_descent(w1,w2,P,ID)
+        random_example = P[select_random_example(len(P))]
+        w1,w2 = calculate_weights(w1,w2,ID,random_example,n)
+    return cost_function
 
 
 def plot_c():
@@ -64,50 +116,6 @@ def plot_c():
     axes.set_ylim([-0.2, 1.2])
     plt.legend()
     plt.show()
-
-
-def Feed_forward(w1,w2,eps):
-    return (np.tanh(np.dot(w1,eps)) + np.tanh(np.dot(w2,eps)))
-
-#e = ((feedforward() - label)^2)/2
-#w = w - learning_step * gradient(e)
-def calculate_weights(w1,w2, IDs, example, learning_step):
-    e = ((Feed_forward(w1,w2,example) - IDs[example])^2)*0.5
-    w1_new = w1 - learning_step * np.gradient(w1)*e
-    w2_new = w2 - learning_step * np.gradient(w2)*e
-    return w1_new,w2_new
-
-
-#E = 1/p * 1/2 for all examples do : (feed_forward(eps ) - label(eps))^2
-def sto_gradient_descent(w1,w2,examples, IDs):
-    sum_grad = 0
-    for example in examples:
-        sum_grad = (Feed_forward(w1,w2,example) - IDs(example))^2
-
-    #0.5/len(examples) = (1/2)*(1/len(examples)
-    final_grad = 0.5/len(examples)*sum_grad
-    return final_grad
-
-def select_random_example(len_examples):
-    return np.random.randint(len_examples, size = 1)[0]
-
-
-
-def seq_training(ID, P, n, N, c):
-    """
-    :param ID: the dataset
-    :param P: the number of examples
-    :param n: the number of epoches
-    :return:
-    """
-    w1 = np.random.uniform(N)
-    w2 = np.random.uniform(N)
-    cost_function = 0
-    for epoch in range(0, n):
-        cost_function = sto_gradient_descent(w1,w2,P,ID)
-        random_example = P[select_random_example(len(P))]
-        w1,w2 = calculate_weights(w1,w2,ID,random_example,n)
-    return cost_function
 
 
 def plot_different_parameters():
