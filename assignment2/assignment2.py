@@ -25,7 +25,7 @@ def angle_between(v1, v2):
     v2_u = unit_vector(v2)
     return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
 
-def add_noise(lambda_perc=0.5):
+def add_noise(lambda_perc=50):
     return 1 if random.randrange(0, 100) > lambda_perc else -1
 
 
@@ -35,12 +35,12 @@ def generate_eps(N):
         eps.append(random.gauss(0,1))
     return eps
 
-def generate_label(eps,N, noise=False, lambda_perc=0.5):
+def generate_label(eps,N, noise=False, lambda_perc=50):
     w_start = np.ones(N)
     added_noise = 1 if (noise == False) else add_noise(lambda_perc=lambda_perc)
     return (added_noise * np.sign(np.dot(w_start, eps)))
 
-def generate_dataset(P, N):
+def generate_dataset(P, N, lambda_perc):
     """
     :param P: Number of examples
     :param N: Number of dimensions for the feature
@@ -52,7 +52,7 @@ def generate_dataset(P, N):
         eps = []
         for j in range(0,N):
             eps.append(random.gauss(0,1))
-        S = generate_label(eps,N)
+        S = generate_label(eps,N, noise = True, lambda_perc=lambda_perc)
         ID.append([eps,S])
     return ID
 
@@ -102,25 +102,15 @@ def seq_training(ID, P, n, N, criterionAngle):
     :param n: the number of epoches
     :return:
     """
-    #control_w = np.zeros(P)
     w = np.zeros(N)
     control_w = w
     for epoch in range(0,n):
         w = Minover_algorithm(ID,N,w)
-        #print (angle_between(w, control_w))
         if np.array_equal(w, control_w) or angle_between(w, control_w) < criterionAngle:
             return w, True
         else:
             control_w = w
     return w, False
-
-
-    #     control_w = np.roll(control_w,1) #TODO: From here until line 90 something is not yet right.
-    #     control_w = list(control_w[:-1])
-    #     control_w.append(np.std(w))
-    #     if(np.std(control_w) == 0): 
-    #         return w,True
-    # return w, False
 
 
 def calculate_gen_error(weight,N):
@@ -135,25 +125,25 @@ def plot_different_parameters():
     
     
     alphas = np.arange(0.25,5.0,0.25)
-
-    for criterionAngle in np.arange(0.01,1,0.1):
+    criterionAngle = 0.01
+    for lambda_error in np.arange(50,100,10):
         average_error = []
         for alpha in alphas:
             P = int(alpha*N) #Number of examples
             n = P * N #Number of epoch
             errors = []
             for i in range(2,nD):
-                ID = generate_dataset(P,N)
+                ID = generate_dataset(P,N, lambda_error)
                 w,succes = seq_training(ID,P,n,N, criterionAngle)
                 errors.append(calculate_gen_error(w,N))
             average_error.append(np.mean(errors))
             print("ALPHA :{}, SUCCES :{}, ERROR :{}".format(alpha,succes, np.mean(errors)))
-        plt.plot(alphas,average_error,label=str(np.degrees(criterionAngle)) + " thres angle")
+        plt.plot(alphas,average_error,label=str(lambda_error) + "  add noise")
     plt.legend(loc=2,prop={'size':6})
     plt.ylabel('Generalization error')
     plt.xlabel('alpha')
     plt.title('Generalization error for different alphas and dimensions')
-    plt.savefig("Plot different crit angles")
+    plt.savefig("Plot different noises")
 
 
 if __name__ == '__main__':
